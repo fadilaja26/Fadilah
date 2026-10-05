@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Biodata 3D Ocean</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: radial-gradient(ellipse at top, #003a5c 0%, #001a33 40%, #000810 100%);
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    cursor: crosshair;
+  }
+  canvas { display: block; }
+
+  /* ====== OVERLAY BIODATA ====== */
+  #ui {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+    z-index: 10;
+    padding: 20px;
+  }
+
+  #name {
+    font-size: clamp(2rem, 7vw, 5rem);
+    font-weight: 900;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #ffffff 0%, #7ee8ff 50%, #0088ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow:
+      0 0 20px rgba(0,200,255,0.6),
+      0 0 40px rgba(0,150,255,0.4),
+      0 8px 20px rgba(0,0,0,0.5);
+    opacity: 0;
+    animation: fadeUp 1.5s ease forwards 0.5s;
+  }
+
+  #role {
+    font-size: clamp(0.9rem, 2vw, 1.3rem);
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: #a8e8ff;
+    margin-top: 10px;
+    text-shadow: 0 0 15px rgba(0,200,255,0.8);
+    opacity: 0;
+    animation: fadeUp 1.5s ease forwards 1.2s;
+  }
+
+  #divider {
+    width: 0;
+    height: 2px;
+    margin: 25px 0;
+    background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+    box-shadow: 0 0 15px #00d4ff;
+    animation: grow 1.5s ease forwards 1.8s;
+  }
+
+  #info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 25px;
+    justify-content: center;
+    max-width: 800px;
+    opacity: 0;
+    animation: fadeUp 1.5s ease forwards 2.3s;
+  }
+
+  .chip {
+    padding: 8px 18px;
+    border: 1px solid rgba(0,200,255,0.4);
+    border-radius: 30px;
+    background: rgba(0, 40, 80, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 0.9rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: #d5f4ff;
+    box-shadow:
+      inset 0 0 10px rgba(0,200,255,0.15),
+      0 0 20px rgba(0,150,255,0.2);
+    transition: 0.3s;
+    pointer-events: auto;
+  }
+  .chip:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow:
+      inset 0 0 20px rgba(0,200,255,0.4),
+      0 0 30px rgba(0,200,255,0.6);
+    color: #fff;
+  }
+  .chip b { color: #7ee8ff; font-weight: 600; }
+
+  #hint {
+    position: absolute;
+    bottom: 25px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    color: rgba(168, 232, 255, 0.6);
+    animation: pulse 2.5s ease-in-out infinite;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  @keyframes grow {
+    from { width: 0; opacity: 0; }
+    to { width: 260px; opacity: 1; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* ====== LOADER ====== */
+  #loader {
+    position: fixed;
+    inset: 0;
+    background: #000810;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.8s ease;
+    color: #7ee8ff;
+    font-size: 0.9rem;
+    letter-spacing: 4px;
+  }
+  #loader.hide { opacity: 0; pointer-events: none; }
+  #loader::after {
+    content: 'LOADING OCEAN...';
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<div id="loader"></div>
+
+<div id="ui">
+  <!-- GANTI: NAMA KAMU -->
+  <h1 id="name">Nama Kamu</h1>
+
+  <!-- GANTI: PROFESI / TAGLINE -->
+  <p id="role">CREATIVE • DEVELOPER • EXPLORER</p>
+
+  <div id="divider"></div>
+
+  <!-- GANTI: BIODATA KAMU -->
+  <div id="info">
+    <div class="chip"><b>Umur:</b> 17 Tahun</div>
+    <div class="chip"><b>Sekolah:</b> SMA Nama Sekolah</div>
+    <div class="chip"><b>Kota:</b> Jakarta</div>
+    <div class="chip"><b>Hobi:</b> Coding, Musik, Diving</div>
+    <div class="chip"><b>Cita-cita:</b> Game Developer</div>
+    <div class="chip"><b>IG:</b> @username</div>
+  </div>
+</div>
+
+<div id="hint">✦ KLIK & DRAG UNTUK MENJELAJAH LAUTAN ✦</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+/* ================= SETUP ================= */
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x001a33, 0.025);
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
+camera.position.set(0, 2, 14);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+document.body.appendChild(renderer.domElement);
+
+/* ================= LIGHTING (GOD RAYS feel) ================= */
+const ambient = new THREE.AmbientLight(0x224466, 1.2);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xaaddff, 3);
+sun.position.set(5, 20, 8);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 60;
+scene.add(sun);
+
+const rim = new THREE.PointLight(0x00ccff, 2, 40);
+rim.position.set(-8, 4, -5);
+scene.add(rim);
+
+const rim2 = new THREE.PointLight(0x0066ff, 1.5, 40);
+rim2.position.set(8, -2, 5);
+scene.add(rim2);
+
+/* ================= OCEAN FLOOR ================= */
+const floorGeo = new THREE.PlaneGeometry(120, 120, 100, 100);
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x0a2a4a,
+  roughness: 0.9,
+  metalness: 0.2,
+  emissive: 0x001122
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -6;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Simpan posisi awal untuk animasi gelombang tanah
+const floorPos = floorGeo.attributes.position;
+const floorInit = new Float32Array(floorPos.array);
+
+/* ================= GELEMBUNG ================= */
+const bubbleCount = 1200;
+const bubbleGeo = new THREE.BufferGeometry();
+const bPos = new Float32Array(bubbleCount * 3);
+const bSpeed = new Float32Array(bubbleCount);
+const bSize = new Float32Array(bubbleCount);
+
+for (let i = 0; i < bubbleCount; i++) {
+  bPos[i*3]   = (Math.random() - 0.5) * 60;
+  bPos[i*3+1] = Math.random() * 30 - 6;
+  bPos[i*3+2] = (Math.random() - 0.5) * 60;
+  bSpeed[i]   = 0.02 + Math.random() * 0.06;
+  bSize[i]    = Math.random();
+}
+bubbleGeo.setAttribute('position', new THREE.BufferAttribute(bPos, 3));
+
+const bubbleMat = new THREE.PointsMaterial({
+  color: 0xaaeeff,
+  size: 0.15,
+  transparent: true,
+  opacity: 0.85,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  sizeAttenuation: true
+});
+const bubbles = new THREE.Points(bubbleGeo, bubbleMat);
+scene.add(bubbles);
+
+/* ================= IKAN LOW POLY ================= */
+function makeFish(color) {
+  const g = new THREE.Group();
+
+  // badan
+  const body = new THREE.Mesh(
+    new THREE.ConeGeometry(0.35, 1.4, 8),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.4, emissive: color, emissiveIntensity: 0.15 })
+  );
+  body.rotation.z = Math.PI / 2;
+  body.castShadow = true;
+  g.add(body);
+
+  // ekor
+  const tail = new THREE.Mesh(
+    new THREE.ConeGeometry(0.35, 0.6, 4),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.5 })
+  );
+  tail.position.x = -0.9;
+  tail.rotation.z = -Math.PI / 2;
+  tail.castShadow = true;
+  g.add(tail);
+
+  // sirip atas
+  const fin = new THREE.Mesh(
+    new THREE.ConeGeometry(0.15, 0.4, 4),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: color, emissiveIntensity: 0.3 })
+  );
+  fin.position.set(0, 0.3, 0);
+  g.add(fin);
+
+  return g;
+}
+
+const fishes = [];
+const fishColors = [0xffaa33, 0xff5577, 0x33ddff, 0xaaff55, 0xff77dd, 0xffee55];
+for (let i = 0; i < 22; i++) {
+  const f = makeFish(fishColors[i % fishColors.length]);
+  f.position.set(
+    (Math.random() - 0.5) * 40,
+    (Math.random() - 0.5) * 8,
+    (Math.random() - 0.5) * 40
+  );
+  f.userData = {
+    speed: 0.015 + Math.random() * 0.03,
+    offset: Math.random() * Math.PI * 2,
+    baseY: f.position.y,
+    dir: Math.random() > 0.5 ? 1 : -1
+  };
+  f.scale.setScalar(0.7 + Math.random() * 0.7);
+  if (f.userData.dir < 0) f.rotation.y = Math.PI;
+  fishes.push(f);
+  scene.add(f);
+}
+
+/* ================= CAHAYA MATAHARI (GOD RAYS PLANE) ================= */
+const rayTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 512;
+  const ctx = c.getContext('2d');
+  const grd = ctx.createLinearGradient(0, 0, 0, 512);
+  grd.addColorStop(0, 'rgba(180,240,255,0.9)');
+  grd.addColorStop(0.5, 'rgba(120,200,255,0.35)');
+  grd.addColorStop(1, 'rgba(0,100,200,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 128, 512);
+  return new THREE.CanvasTexture(c);
+})();
+
+const rays = [];
+for (let i = 0; i < 8; i++) {
+  const rayMat = new THREE.MeshBasicMaterial({
+    map: rayTex,
+    transparent: true,
+    opacity: 0.25,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  const ray = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 30), rayMat);
+  ray.position.set((Math.random() - 0.5) * 25, 5, (Math.random() - 0.5) * 25);
+  ray.rotation.z = (Math.random() - 0.5) * 0.3;
+  rays.push(ray);
+  scene.add(ray);
+}
+
+/* ================= PARTIKEL BIOLUMINESEN ================= */
+const sparkCount = 400;
+const sparkGeo = new THREE.BufferGeometry();
+const sPos = new Float32Array(sparkCount * 3);
+for (let i = 0; i < sparkCount; i++) {
+  sPos[i*3]   = (Math.random() - 0.5) * 50;
+  sPos[i*3+1] = (Math.random() - 0.5) * 20;
+  sPos[i*3+2] = (Math.random() - 0.5) * 50;
+}
+sparkGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+const sparkMat = new THREE.PointsMaterial({
+  color: 0x88ffee,
+  size: 0.08,
+  transparent: true,
+  opacity: 0.9,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const sparks = new THREE.Points(sparkGeo, sparkMat);
+scene.add(sparks);
+
+/* ================= KAMERA CONTROLS ================= */
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.maxDistance = 25;
+controls.minDistance = 3;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.4;
+controls.enablePan = false;
+
+/* ================= POST PROCESSING (Bloom) ================= */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(
+  new THREE.Vector2(innerWidth, innerHeight),
+  0.9,   // strength
+  0.6,   // radius
+  0.15   // threshold
+);
+composer.addPass(bloom);
+
+/* ================= ANIMASI ================= */
+let t = 0;
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  t += dt;
+
+  // Gelembung naik
+  const bPosAttr = bubbles.geometry.attributes.position;
+  for (let i = 0; i < bubbleCount; i++) {
+    bPosAttr.array[i*3+1] += bSpeed[i] * 60 * dt;
+    bPosAttr.array[i*3]   += Math.sin(t + i) * 0.003;
+    if (bPosAttr.array[i*3+1] > 20) {
+      bPosAttr.array[i*3+1] = -6;
+      bPosAttr.array[i*3]   = (Math.random() - 0.5) * 60;
+      bPosAttr.array[i*3+2] = (Math.random() - 0.5) * 60;
+    }
+  }
+  bPosAttr.needsUpdate = true;
+
+  // Ikan berenang
+  fishes.forEach((f, i) => {
+    f.position.x += f.userData.speed * f.userData.dir;
+    f.position.y = f.userData.baseY + Math.sin(t * 1.5 + f.userData.offset) * 0.4;
+    f.rotation.z = Math.sin(t * 4 + f.userData.offset) * 0.08;
+
+    if (f.position.x > 25) f.position.x = -25;
+    if (f.position.x < -25) f.position.x = 25;
+  });
+
+  // God rays bergerak halus
+  rays.forEach((r, i) => {
+    r.material.opacity = 0.15 + Math.sin(t * 0.5 + i) * 0.1;
+    r.rotation.z = Math.sin(t * 0.3 + i) * 0.05;
+  });
+
+  // Sparkle berputar
+  sparks.rotation.y += dt * 0.02;
+
+  // Gelombang dasar laut
+  for (let i = 0; i < floorPos.count; i++) {
+    const x = floorInit[i*3];
+    const y = floorInit[i*3+1];
+    floorPos.array[i*3+2] = Math.sin(x * 0.3 + t) * 0.3 + Math.cos(y * 0.3 + t * 0.7) * 0.3;
+  }
+  floorPos.needsUpdate = true;
+
+  // Bloom pulse
+  bloom.strength = 0.85 + Math.sin(t * 0.8) * 0.15;
+
+  controls.update();
+  composer.render();
+}
+animate();
+
+/* ================= CLICK MOTION (Zoom) ================= */
+renderer.domElement.addEventListener('click', () => {
+  controls.autoRotateSpeed = 2;
+  setTimeout(() => controls.autoRotateSpeed = 0.4, 1500);
+});
+
+/* ================= RESIZE ================= */
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+});
+
+/* ================= HIDE LOADER ================= */
+setTimeout(() => {
+  document.getElementById('loader').classList.add('hide');
+}, 1200);
+</script>
+</body>
+</html>
